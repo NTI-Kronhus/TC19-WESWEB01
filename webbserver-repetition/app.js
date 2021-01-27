@@ -1,6 +1,24 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const app = express();
 const port = 3000;
+
+mongoose.connect("mongodb://localhost/test", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function () {
+  console.log("CONNECTED!");
+});
+
+const namnListaSchema = new mongoose.Schema({
+  names: Array,
+});
+
+const NamnLista = mongoose.model("NamnLista", namnListaSchema);
 
 app.use(express.static(__dirname + "\\client"));
 
@@ -13,6 +31,17 @@ const namn = [];
 
 app.get("/", (req, res) => {
   res.render("index.ejs", { names: namn });
+});
+
+app.get("/save", (req, res) => {
+  var nameList = NamnLista({
+    names: namn,
+  });
+
+  nameList.save();
+
+  namn.splice(0, namn.length);
+  res.redirect("/");
 });
 
 app.post("/", function (req, res) {
